@@ -49,7 +49,7 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const RENDER_KEEP_ALIVE_INTERVAL_MS = 4 * 60 * 1000;
+const RENDER_KEEP_ALIVE_INTERVAL_MS = 8 * 60 * 1000;
 
 const startRenderKeepAlive = (server) => {
   if (process.env.RENDER !== 'true' || !process.env.RENDER_EXTERNAL_URL) return;
