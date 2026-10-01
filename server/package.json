@@ -1,5 +1,5 @@
 {
-  "name": "clearcash-backend",
+  "name": "clearcash-server",
   "version": "1.0.0",
   "description": "Backend API for the ClearCash personal finance tracker",
   "main": "server.js",

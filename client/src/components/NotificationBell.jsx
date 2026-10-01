@@ -1,9 +1,39 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import client from '../api/client'
 import { useAuth } from '../context/authContext'
 import { LoadingState, ErrorState, EmptyState } from './Feedback'
 import Modal from './Modal'
 import DebitConfirmation from './DebitConfirmation'
+
+function playNotificationSound() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext
+  if (!AudioContextClass) return
+
+  const audioContext = new AudioContextClass()
+  const playChime = () => {
+    const oscillator = audioContext.createOscillator()
+    const gain = audioContext.createGain()
+    const now = audioContext.currentTime
+
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(880, now)
+    oscillator.frequency.setValueAtTime(1175, now + 0.1)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22)
+    oscillator.connect(gain)
+    gain.connect(audioContext.destination)
+    oscillator.addEventListener('ended', () => audioContext.close().catch(() => {}), { once: true })
+    oscillator.start(now)
+    oscillator.stop(now + 0.23)
+  }
+
+  if (audioContext.state === 'suspended') {
+    audioContext.resume().then(playChime).catch(() => audioContext.close().catch(() => {}))
+  } else {
+    playChime()
+  }
+}
 
 export default function NotificationBell() {
   const { logout, user } = useAuth()
@@ -14,16 +44,35 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refresh, setRefresh] = useState(0)
+  const previousDueSoonCount = useRef(null)
+
   useEffect(() => {
-    if (!enabled) return undefined
+    if (!enabled) {
+      previousDueSoonCount.current = null
+      return undefined
+    }
+
     let active = true
     async function load() {
       setLoading(true)
       try {
         const { data } = await client.get('/api/subscriptions/due-soon')
         if (!active) return
-        setSubscriptions(data.subscriptions || [])
-        setServerEnabled(data.enabled !== false)
+        const nextSubscriptions = data.subscriptions || []
+        const nextServerEnabled = data.enabled !== false
+        const nextCount = nextSubscriptions.length
+
+        if (
+          nextServerEnabled &&
+          previousDueSoonCount.current !== null &&
+          nextCount > previousDueSoonCount.current
+        ) {
+          playNotificationSound()
+        }
+
+        previousDueSoonCount.current = nextCount
+        setSubscriptions(nextSubscriptions)
+        setServerEnabled(nextServerEnabled)
         setError('')
       } catch (err) {
         if (!active) return

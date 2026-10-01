@@ -17,7 +17,7 @@ React 19, Vite, Tailwind CSS, React Router, Axios and Recharts; Node.js, Express
 
 ## Analytics differentiator
 
-The implementation is in backend/utils/analyticsEngine.js and backend/controllers/analyticsController.js:
+The implementation is in server/utils/analyticsEngine.js and server/controllers/analyticsController.js:
 
 - **Anomalies:** groups expenses by category, requires at least three records, and flags amounts greater than the category mean plus two population standard deviations. The mean includes the candidate expense. This is a transparent statistical heuristic, not machine learning or fraud detection.
 - **Trends:** compares the current calendar month's category total with the average of the preceding three calendar months, including zero-spend months. Changes within 5% are stable. A nonzero total with a zero baseline is reported as +100%. A partial current month can make the comparison look lower.
@@ -32,7 +32,7 @@ Use Node.js 22.12+ (or a supported newer LTS) and a local MongoDB instance or At
 
 ### Backend
 
-Run from backend/:
+Run from server/:
 
 ~~~sh
 npm ci
@@ -46,7 +46,7 @@ GET /health (also /api/health) returns HTTP 200 once the server is running. The 
 
 ### Frontend
 
-In another terminal, run from clearcash-frontend/:
+In another terminal, run from client/:
 
 ~~~sh
 npm ci
@@ -58,7 +58,7 @@ VITE_API_BASE_URL is the backend origin, for example http://localhost:5000, with
 
 ### Demo data
 
-Run from backend/:
+Run from server/:
 
 ~~~sh
 npm run seed -- --dry-run
@@ -73,11 +73,11 @@ Override with DEMO_EMAIL and DEMO_PASSWORD. The script hashes the password, only
 ## Checks
 
 ~~~sh
-cd backend
+cd server
 npm test
 node --check server.js
 node seed.js --dry-run
-cd ../clearcash-frontend
+cd ../client
 npm test
 npm run lint
 npm run build
@@ -88,9 +88,9 @@ The fixture-based browser audit is in tests/browser-polish.js. Start the product
 
 ## Deployment preparation (nothing is deployed)
 
-- **Render:** backend/ root, npm ci build command, npm start start command; set MONGO_URI, JWT_SECRET, CORS_ORIGIN and optionally JWT_EXPIRES_IN. Render supplies PORT. Use /health as the health-check path.
+- **Render:** server/ root, npm ci build command, npm start start command; set MONGO_URI, JWT_SECRET, CORS_ORIGIN and optionally JWT_EXPIRES_IN. Render supplies PORT. Use /health as the health-check path.
 - **Atlas:** create the database/user and configure network access yourself; place the URI only in the backend environment.
-- **Vercel:** clearcash-frontend/ root, npm run build, dist output; set VITE_API_BASE_URL to the Render HTTPS origin. vercel.json provides SPA rewrites so direct visits to /home or /insights work. For another host, configure its equivalent fallback to index.html.
+- **Vercel:** client/ root, npm run build, dist output; set VITE_API_BASE_URL to the Render HTTPS origin. vercel.json provides SPA rewrites so direct visits to /home or /insights work. For another host, configure its equivalent fallback to index.html.
 - Set backend CORS_ORIGIN to the exact deployed frontend HTTPS origin. Add preview origins explicitly if needed. Verify signup, login and CRUD on the deployed app after configuring both services.
 
 ## Screenshots
