@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import client from '../api/client'
 import { apiError } from '../utils/validation'
 import EntryForm from './EntryForm'
 import { LoadingState, ErrorState, EmptyState } from './Feedback'
 
-export default function Transactions({ onChanged }) {
+const money = (value) => Number(value || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 })
+const dateLabel = (value) => new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+
+export default function Transactions({ onChanged, formOpen, onFormOpenChange }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -13,47 +16,91 @@ export default function Transactions({ onChanged }) {
   const [editing, setEditing] = useState(null)
   const [pending, setPending] = useState('')
   const [confirming, setConfirming] = useState('')
-  const [limit, setLimit] = useState(10)
+  const [limit, setLimit] = useState(8)
+  const hasLoaded = useRef(false)
+
   useEffect(() => {
     let active = true
     const load = async () => {
-    setLoading(true); setError('')
-    await client.get('/api/transactions').then(({ data }) => { if (active) setItems(data.transactions || []) })
-      .catch((err) => { if (active) setError(apiError(err, 'Unable to load transactions.')) })
-      .finally(() => { if (active) setLoading(false) })
+      if (!hasLoaded.current) setLoading(true)
+      setError('')
+      try {
+        const { data } = await client.get('/api/transactions')
+        if (active) { setItems(data.transactions || []); hasLoaded.current = true }
+      } catch (requestError) {
+        if (active) setError(apiError(requestError, 'Unable to load transactions.'))
+      } finally {
+        if (active) setLoading(false)
+      }
     }
     load()
     return () => { active = false }
   }, [refresh])
-  async function save(values) {
-    if (editing) await client.put('/api/transactions/' + editing._id, values)
+
+  const openNew = () => {
+    setEditing(null)
+    onFormOpenChange(true)
+  }
+
+  const closeForm = () => {
+    setEditing(null)
+    onFormOpenChange(false)
+  }
+
+  const save = async (values) => {
+    if (editing) await client.put(`/api/transactions/${editing._id}`, values)
     else await client.post('/api/transactions', values)
-    setEditing(null); setRefresh((value) => value + 1); onChanged()
+    closeForm()
+    setRefresh((value) => value + 1)
+    onChanged()
   }
-  async function remove(id) {
+
+  const remove = async (id) => {
     if (pending) return
-    setPending(id); setMutationError('')
+    setPending(id)
+    setMutationError('')
     try {
-      await client.delete('/api/transactions/' + id)
-      setItems((current) => current.filter((item) => item._id !== id)); setConfirming(''); onChanged()
-      if (editing?._id === id) setEditing(null)
-    } catch (err) { setMutationError(apiError(err, 'Unable to delete transaction.')) }
-    finally { setPending('') }
+      await client.delete(`/api/transactions/${id}`)
+      setItems((current) => current.filter((item) => item._id !== id))
+      setConfirming('')
+      if (editing?._id === id) closeForm()
+      onChanged()
+    } catch (requestError) {
+      setMutationError(apiError(requestError, 'Unable to delete transaction.'))
+    } finally {
+      setPending('')
+    }
   }
-  return <section id="transactions" className="mt-6 rounded-card border border-border bg-surface-elevated p-5 sm:p-7">
-    <h2 className="mb-5 font-display text-xl font-bold">Transactions</h2>
-    <EntryForm key={editing?._id || 'new'} kind="transaction" initial={editing} onSave={save} onCancel={editing ? () => setEditing(null) : undefined} />
+
+  const openEdit = (item) => {
+    setEditing(item)
+    onFormOpenChange(true)
+    requestAnimationFrame(() => document.getElementById('transaction-form')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  }
+
+  return <section id="transactions" className="app-card transaction-panel">
+    <div className="panel-heading">
+      <div><h2 className="app-card-title">Recent activity</h2><p>All of your recorded income and spending in one place.</p></div>
+      <button type="button" className={formOpen ? 'quiet-button' : 'action-button'} onClick={formOpen ? closeForm : openNew} aria-expanded={formOpen} aria-controls="transaction-form">{formOpen ? 'Close form' : 'Add transaction'}</button>
+    </div>
+
+    {formOpen && <div id="transaction-form" className="composer-panel"><EntryForm key={editing?._id || 'new'} kind="transaction" initial={editing} onSave={save} onCancel={closeForm} /></div>}
     <ErrorState message={mutationError} />
-    {loading ? <div className="mt-6"><LoadingState label="Loading transactions" compact /></div> : error ? <ErrorState message={error} onRetry={() => setRefresh((value) => value + 1)} /> : !items.length ? <EmptyState title="No transactions yet" actionLabel="Add your first transaction" onAction={() => document.querySelector('#transactions input')?.focus()}>Start with today's income or an expense.</EmptyState> : <>
-      <ul className="mt-6 divide-y divide-border">{items.slice(0, limit).map((item) => <li key={item._id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-        <div className="min-w-0 flex-1"><p className="font-semibold">{item.category}</p><p className="text-sm text-ink-secondary">{item.description}</p><p className="text-xs text-ink-muted">{new Date(item.date).toLocaleDateString('en-IN')}</p></div>
-        <p className={item.type === 'income' ? 'text-success' : 'text-ink'}>{item.type === 'income' ? '+' : '-'}{Number(item.amount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-        <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
-          <button type="button" disabled={Boolean(pending)} className="px-3 py-2 text-sm text-accent-soft" onClick={() => { setEditing(item); document.getElementById('transactions')?.scrollIntoView({ block: 'start' }) }}>Edit</button>
-          {confirming === item._id ? <><button type="button" disabled={Boolean(pending)} className="px-3 py-2 text-sm" onClick={() => setConfirming('')}>Cancel</button><button type="button" disabled={Boolean(pending)} className="px-3 py-2 text-sm text-danger" onClick={() => remove(item._id)}>{pending === item._id ? 'Deleting...' : 'Confirm delete'}</button></> : <button type="button" disabled={Boolean(pending)} className="px-3 py-2 text-sm text-danger" onClick={() => setConfirming(item._id)}>Delete</button>}
+
+    {loading ? <LoadingState label="Loading transactions" compact /> : error ? <ErrorState message={error} onRetry={() => setRefresh((value) => value + 1)} /> : !items.length ? (
+      <EmptyState title="No transactions yet" actionLabel="Add a transaction" onAction={openNew}>Record an expense or income to start building your overview.</EmptyState>
+    ) : <>
+      <div className="list-caption"><span>Transactions</span><span>{items.length} total</span></div>
+      <ul className="transaction-list">{items.slice(0, limit).map((item) => <li key={item._id} className="transaction-row">
+        <span className={`transaction-icon ${item.type === 'income' ? 'is-income' : ''}`} aria-hidden="true">{item.type === 'income' ? '↙' : '↗'}</span>
+        <div className="transaction-info"><strong>{item.category}</strong><span>{item.description || (item.type === 'income' ? 'Income' : 'Expense')} · {dateLabel(item.date)}</span></div>
+        <strong className={`transaction-amount ${item.type === 'income' ? 'is-income' : ''}`}>{item.type === 'income' ? '+' : '−'}{money(item.amount)}</strong>
+        <div className="row-actions">
+          <button type="button" disabled={Boolean(pending)} onClick={() => openEdit(item)}>Edit</button>
+          {confirming === item._id ? <><button type="button" disabled={Boolean(pending)} onClick={() => setConfirming('')}>Cancel</button><button type="button" disabled={Boolean(pending)} className="danger-link" onClick={() => remove(item._id)}>{pending === item._id ? 'Deleting…' : 'Confirm delete'}</button></> : <button type="button" disabled={Boolean(pending)} className="danger-link" onClick={() => setConfirming(item._id)}>Delete</button>}
         </div>
       </li>)}</ul>
-      {items.length > limit && <button type="button" className="action-button mt-4" onClick={() => setLimit((value) => value + 10)}>Show more transactions</button>}
+      {items.length > limit && <button type="button" className="quiet-button mt-5 w-full" onClick={() => setLimit((value) => value + 8)}>Show more transactions</button>}
     </>}
   </section>
 }

@@ -8,9 +8,11 @@ import FilterTabs from '../components/FilterTabs'
 import SubscriptionList from '../components/SubscriptionList'
 import WasteBanner from '../components/WasteBanner'
 import { useAuth } from '../context/authContext'
+import { useLocation } from 'react-router-dom'
 
 function Subscriptions() {
   const { logout } = useAuth()
+  const location = useLocation()
   const [filter, setFilter] = useState('all')
   const [subscriptions, setSubscriptions] = useState([])
   const [waste, setWaste] = useState({ totalMonthlyRecurring: 0, monthlyWaste: 0, potentialSavings: 0, unusedSubscriptionCount: 0 })
@@ -19,7 +21,14 @@ function Subscriptions() {
   const [error, setError] = useState('')
   const [mutationError, setMutationError] = useState('')
   const [editing, setEditing] = useState(null)
+  const [formOpen, setFormOpen] = useState(() => location.hash === '#subscription-form')
   const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    if (location.hash !== '#subscription-form') return undefined
+    const frame = requestAnimationFrame(() => setFormOpen(true))
+    return () => cancelAnimationFrame(frame)
+  }, [location.hash])
 
   useEffect(() => {
     let ignore = false
@@ -97,7 +106,20 @@ function Subscriptions() {
     if (editing) await client.put('/api/subscriptions/' + editing._id, values)
     else await client.post('/api/subscriptions', values)
     setEditing(null)
+    setFormOpen(false)
     setRefreshKey((current) => current + 1)
+  }
+
+  const openNew = () => {
+    setEditing(null)
+    setFormOpen(true)
+    requestAnimationFrame(() => document.getElementById('subscription-form')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  }
+
+  const openEdit = (item) => {
+    setEditing(item)
+    setFormOpen(true)
+    requestAnimationFrame(() => document.getElementById('subscription-form')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
   }
 
   return (
@@ -109,29 +131,23 @@ function Subscriptions() {
             <h1 className="page-title">Subscriptions</h1>
             <p className="page-description">Spot services you pay for but no longer use.</p>
           </div>
-          <FilterTabs value={filter} onChange={setFilter} />
+          <button type="button" className="action-button" onClick={openNew}>+ Add subscription</button>
         </header>
-
-        <section id="subscription-form" className="mb-6 rounded-card border border-border bg-surface-elevated p-5 sm:p-7">
-          <EntryForm key={editing?._id || 'new'} kind="subscription" initial={editing} onSave={saveSubscription} onCancel={editing ? () => setEditing(null) : undefined} />
-        </section>
         <ErrorState message={mutationError} />
 
         {loading ? (
           <LoadingState label="Loading subscriptions" />
         ) : error ? <ErrorState message={error} onRetry={() => setRefreshKey((current) => current + 1)} /> : (
-          <div className="space-y-6">
-            <WasteBanner totalMonthlyCost={waste.monthlyWaste} unusedCount={waste.unusedSubscriptionCount} />
-            <SubscriptionList onEdit={(item) => { setEditing(item); document.getElementById('subscription-form')?.scrollIntoView({ block: 'start' }) }} filter={filter} onResetFilter={() => setFilter('all')} subscriptions={subscriptions} pendingIds={pendingIds} onToggle={toggleSubscription} onDelete={deleteSubscription} />
-            <section aria-label="Monthly subscription summary" className="rounded-card border border-border bg-surface-elevated p-5 sm:p-6">
-              <dl className="grid gap-5 sm:grid-cols-2">
-                {[['Total Monthly Recurring', waste.totalMonthlyRecurring], ['Potential Savings', waste.potentialSavings]].map(([label, amount]) => <div key={label}>
-                  <dt className="text-sm font-semibold text-ink-secondary">{label}</dt>
-                  <dd className="mt-2 break-words text-2xl font-bold text-accent-soft">{Number(amount || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}<span className="text-sm font-normal"> / month</span></dd>
-                </div>)}
-              </dl>
-              <p className="mt-4 text-xs leading-5 text-ink-muted">Totals cover all subscriptions, regardless of the selected filter. Yearly charges are divided by 12; potential savings are the monthly costs of unused services.</p>
-            </section>
+          <div>
+            <div className="subscription-summary-grid">
+              <section className="app-card subscription-total"><p className="page-eyebrow">Monthly recurring</p><strong>{Number(waste.totalMonthlyRecurring || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}</strong><span>Across all subscriptions · yearly charges averaged monthly</span></section>
+              <WasteBanner totalMonthlyCost={waste.monthlyWaste} unusedCount={waste.unusedSubscriptionCount} />
+            </div>
+
+            {formOpen && <section id="subscription-form" className="app-card composer-panel subscription-composer"><EntryForm key={editing?._id || 'new'} kind="subscription" initial={editing} onSave={saveSubscription} onCancel={() => { setEditing(null); setFormOpen(false) }} /></section>}
+
+            <div className="section-heading subscription-list-heading"><div><h2>Your subscriptions</h2><p>Review what renews and what you still use.</p></div><FilterTabs value={filter} onChange={setFilter} /></div>
+            <SubscriptionList onEdit={openEdit} filter={filter} onResetFilter={() => setFilter('all')} subscriptions={subscriptions} pendingIds={pendingIds} onToggle={toggleSubscription} onDelete={deleteSubscription} onAdd={openNew} />
           </div>
         )}
       </div>

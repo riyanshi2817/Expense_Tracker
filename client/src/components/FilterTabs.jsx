@@ -6,19 +6,14 @@ const filters = [
 
 function FilterTabs({ value, onChange }) {
   return (
-    <div className="inline-flex rounded-2xl border border-border bg-surface-elevated p-1" role="tablist" aria-label="Filter subscriptions">
+    <div className="filter-tabs" role="group" aria-label="Filter subscriptions">
       {filters.map((filter) => (
         <button
           key={filter.value}
           type="button"
-          role="tab"
-          aria-selected={value === filter.value}
+          aria-pressed={value === filter.value}
           onClick={() => onChange(filter.value)}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            value === filter.value
-              ? 'bg-accent text-onprimary'
-              : 'text-ink-secondary hover:text-ink'
-          }`}
+          className={`filter-tab${value === filter.value ? ' is-active' : ''}`}
         >
           {filter.label}
         </button>

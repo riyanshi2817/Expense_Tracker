@@ -43,20 +43,23 @@ export default function EntryForm({ kind, initial, onSave, onCancel }) {
     finally { submitting.current = false; setBusy(false) }
   }
   return <form onSubmit={submit} noValidate aria-label={`${initial ? 'Edit' : 'Add'} ${kind}`}>
-    <fieldset disabled={busy} className="grid min-w-0 gap-4 sm:grid-cols-2">
-      <legend className="mb-4 font-display text-lg font-bold">{initial ? 'Edit' : 'Add'} {kind}</legend>
+    <fieldset disabled={busy} className="entry-fieldset">
+      <legend className="app-card-title">{initial ? 'Edit' : 'New'} {kind}</legend>
+      <p className="entry-form-intro">{kind === 'transaction' ? 'Record the details once so your overview stays accurate.' : 'Add the renewal details to keep upcoming payments visible.'}</p>
+      <div className="entry-form-grid">
       {fields.map(([name, label, type]) => {
         const props = { id: id + name, name, value: values[name], onChange: (event) => setValues((current) => ({ ...current, [name]: event.target.value })), className: 'form-input', 'aria-invalid': Boolean(errors[name]), 'aria-describedby': errors[name] ? id + name + '-error' : undefined }
-        return <div key={name} className="min-w-0"><label htmlFor={id + name} className="text-sm font-semibold text-ink-secondary">{label}</label>
+        return <div key={name} className={`entry-field${name === 'description' || name === 'name' ? ' entry-field--wide' : ''}`}><label htmlFor={id + name} className="entry-label">{label}</label>
           {Array.isArray(type) ? <select {...props}>{type.map((value) => <option key={value} value={value}>{value}</option>)}</select> : <input {...props} type={type} step={type === 'number' ? '0.01' : undefined} min={type === 'number' ? '0.01' : undefined} maxLength={type === 'text' ? 200 : undefined} />}
           {errors[name] && <p id={id + name + '-error'} className="mt-1 text-sm text-danger">{errors[name]}</p>}
         </div>
       })}
+      </div>
     </fieldset>
     <ErrorState message={error} />
     {success && <p role="status" className="mt-3 text-sm text-success">{success}</p>}
-    <div className="mt-4 flex flex-wrap justify-end gap-3">
-      {onCancel && <button type="button" disabled={busy} className="rounded-xl px-4 py-3 text-sm" onClick={onCancel}>Cancel edit</button>}
+    <div className="entry-form-actions">
+      {onCancel && <button type="button" disabled={busy} className="quiet-button" onClick={onCancel}>Cancel</button>}
       <button className="action-button" disabled={busy}>{busy ? 'Saving...' : initial ? 'Save changes' : 'Add ' + kind}</button>
     </div>
   </form>

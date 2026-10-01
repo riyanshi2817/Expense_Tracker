@@ -1,7 +1,7 @@
 import { apiError } from '../utils/validation'
-import { LoadingState, ErrorState, EmptyState } from '../components/Feedback'
+import { LoadingState, ErrorState } from '../components/Feedback'
 import Transactions from '../components/Transactions'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import client from '../api/client'
 import CashFlowChart from '../components/CashFlowChart'
 import HealthScoreRing from '../components/HealthScoreRing'
@@ -10,6 +10,7 @@ import DaysLeftCard from '../components/DaysLeftCard'
 import MonthlyWasteBanner from '../components/MonthlyWasteBanner'
 import UpcomingDebits from '../components/UpcomingDebits'
 import { useAuth } from '../context/authContext'
+import { Link } from 'react-router-dom'
 
 const emptySummary = {
   spendable: 0,
@@ -34,13 +35,20 @@ function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
+  const [transactionFormOpen, setTransactionFormOpen] = useState(false)
+  const hasLoaded = useRef(false)
+
+  const openTransactionForm = () => {
+    setTransactionFormOpen(true)
+    requestAnimationFrame(() => document.getElementById('transactions')?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+  }
 
   useEffect(() => {
     let ignore = false
 
     const loadDashboard = async () => {
       try {
-        setLoading(true)
+        if (!hasLoaded.current) setLoading(true)
         setError('')
 
         const [summaryResponse, analyticsResponse, subscriptionsResponse] =
@@ -55,6 +63,7 @@ function Home() {
         setSummary({ ...emptySummary, ...summaryResponse.data })
         setAnalytics({ ...emptyAnalytics, ...analyticsResponse.data })
         setSubscriptions(subscriptionsResponse.data.subscriptions || [])
+        hasLoaded.current = true
       } catch (requestError) {
         if (ignore) return
 
@@ -77,19 +86,11 @@ function Home() {
       <div className="page-container">
         <header className="page-header">
           <div>
-            <p className="page-eyebrow">Your overview</p>
-            <h1 className="page-title">
-              {user?.name ? `Good to see you, ${user.name}` : 'Your money, clearly'}
-            </h1>
-            <p className="page-description">A clear view of what is available, what is coming up, and where your money went.</p>
+            <p className="page-eyebrow">Your workspace</p>
+            <h1 className="page-title">Overview</h1>
+            <p className="page-description">{user?.name ? `Welcome back, ${user.name}. ` : ''}Here is where your money stands today.</p>
           </div>
-          <button
-            type="button"
-            onClick={logout}
-            className="quiet-button"
-          >
-            Log out
-          </button>
+          <button type="button" className="action-button" onClick={openTransactionForm}>+ Add transaction</button>
         </header>
 
         {loading ? (
@@ -97,30 +98,24 @@ function Home() {
         ) : error ? (
           <ErrorState message={error} onRetry={() => setRefreshKey((current) => current + 1)} />
         ) : (
-          <div className="space-y-6">
-            {!summary.cashFlow.length && <EmptyState title="Welcome to your fresh start" to="/home#transactions" actionLabel="Add your first transaction">Add some income or an expense, then set your monthly budget in Profile.</EmptyState>}
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.75fr)]">
+          <div>
+            <div className="overview-lead-grid">
               <HeroCard
                 salary={summary.salary}
                 fixedCommitments={summary.fixedCommitments}
                 safeToSpendPerDay={summary.safeToSpendPerDay}
                 remainingThisMonth={summary.remainingThisMonth}
               />
-              <HealthScoreRing score={analytics.healthScore?.score} hasHistory={analytics.transactionCount > 0} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:gap-5">
-              <MonthlyWasteBanner monthlyWaste={summary.monthlyWaste} />
-              <DaysLeftCard daysLeft={summary.daysLeftInMonth} />
-            </div>
-
-            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.8fr)]">
-              <CashFlowChart cashFlow={summary.cashFlow} />
-              <UpcomingDebits subscriptions={subscriptions} />
+              <div className="overview-side-stack">
+                {analytics.transactionCount > 0 ? <HealthScoreRing score={analytics.healthScore?.score} /> : <section className="app-card start-card"><p className="page-eyebrow">Getting started</p><h2 className="app-card-title">Build your first overview</h2><p>Set your monthly plan, then add income and expenses to see your financial health.</p><Link className="text-link" to="/profile">Set up your plan →</Link></section>}
+                <div className="overview-metrics"><DaysLeftCard daysLeft={summary.daysLeftInMonth} /><MonthlyWasteBanner monthlyWaste={summary.monthlyWaste} /></div>
+              </div>
             </div>
           </div>
         )}
-        <Transactions onChanged={() => setRefreshKey((current) => current + 1)} />
+        <div className="section-heading"><div><h2>Activity</h2><p>Keep your records up to date.</p></div></div>
+        <Transactions onChanged={() => setRefreshKey((current) => current + 1)} formOpen={transactionFormOpen} onFormOpenChange={setTransactionFormOpen} />
+        {!loading && !error && <><div className="section-heading"><div><h2>Looking ahead</h2><p>Upcoming charges and your cash flow over time.</p></div></div><div className="dashboard-lower-grid"><UpcomingDebits subscriptions={subscriptions} />{summary.cashFlow.length > 0 && <CashFlowChart cashFlow={summary.cashFlow} />}</div></>}
       </div>
     </main>
   )

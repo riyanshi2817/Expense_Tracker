@@ -20,10 +20,26 @@ function Login() {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
+  const signIn = async (credentials) => {
     if (submitting) return
     setError('')
+    try {
+      setSubmitting(true)
+      sessionStorage.removeItem('clearcash_session_message')
+      await login(credentials)
+      navigate(location.state?.from?.pathname || '/home', { replace: true })
+    } catch (requestError) {
+      setError(
+        apiError(requestError, 'Unable to log in. Check your details and try again.'),
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    if (submitting) return
 
     if (!form.email.trim() || !form.password) {
       setError('Email and password are required.')
@@ -35,18 +51,7 @@ function Login() {
       return
     }
 
-    try {
-      setSubmitting(true)
-      sessionStorage.removeItem('clearcash_session_message')
-      await login({ email: form.email.trim(), password: form.password })
-      navigate(location.state?.from?.pathname || '/home', { replace: true })
-    } catch (requestError) {
-      setError(
-        apiError(requestError, 'Unable to log in. Check your details and try again.'),
-      )
-    } finally {
-      setSubmitting(false)
-    }
+    signIn({ email: form.email.trim(), password: form.password })
   }
 
   return (
@@ -108,6 +113,14 @@ function Login() {
             disabled={submitting}
           >
             {submitting ? 'Signing in…' : 'Sign in'}
+          </button>
+          <button
+            className="quiet-button w-full"
+            type="button"
+            onClick={() => signIn({ email: 'guest@gmail.com', password: 'guest123' })}
+            disabled={submitting}
+          >
+            Login as guest
           </button>
         </form>
 

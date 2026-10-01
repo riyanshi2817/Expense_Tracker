@@ -17,7 +17,6 @@ function HeroCard({ salary = 0, fixedCommitments = 0, safeToSpendPerDay, remaini
             <dd className="mt-1 break-words text-sm font-bold text-ink sm:text-lg">{formatCurrency(amount)}</dd>
           </div>)}
         </dl>
-        <p className="hero-secondary mt-4 text-xs">After fixed costs is income less commitments, before recorded expenses.</p>
       </div>
     </section>
   )

@@ -102,7 +102,7 @@ function Insights() {
         <header className="page-header">
           <div><p className="page-eyebrow">The bigger picture</p>
           <h1 className="page-title">Insights</h1>
-          <p className="page-description">See what changed, what looks unusual, and where your next financial win can come from.</p></div>
+          <p className="page-description">Understand patterns in your spending and see how your goals are progressing.</p></div>
         </header>
 
         {(error || mutationError) && (
@@ -119,14 +119,17 @@ function Insights() {
         {loading ? (
           <LoadingState label="Loading insights" />
         ) : !error ? (
-          <div className="grid items-start gap-6 lg:grid-cols-2">
-            <div className="lg:col-span-2"><CashFlowChart cashFlow={cashFlow} /></div>
-            {analytics.notificationPrefs?.unusualSpendingAlerts === false ? <section className="rounded-card border border-border bg-surface-elevated p-6"><EmptyState title="Unusual spending alerts are off" to="/profile" actionLabel="Notification preferences" /></section> : <AnomalyFeed anomalies={analytics.anomalies} hasHistory={analytics.transactionCount > 0} />}
-            <SpendingMix spendingMix={analytics.spendingMix} />
-            <CategoryTrends trends={analytics.categoryTrends} />
-            <HealthScoreBreakdown healthScore={analytics.healthScore} hasHistory={analytics.transactionCount > 0} />
-            <GoalsList goals={goals} onCreate={createGoal} onUpdate={updateGoal} onDelete={deleteGoal} />
-            {analytics.notificationPrefs?.weeklySummary !== false && <WeeklyDigest digest={analytics.weeklyDigest} />}
+          <div>
+            <CashFlowChart cashFlow={cashFlow} />
+            <div className="section-heading"><div><h2>Spending patterns</h2><p>Where your money is going and what has changed.</p></div></div>
+            <div className="insights-grid"><SpendingMix spendingMix={analytics.spendingMix} /><CategoryTrends trends={analytics.categoryTrends} /></div>
+            <div className="section-heading"><div><h2>What to watch</h2><p>Signals that may need a closer look.</p></div></div>
+            <div className="insights-grid">
+              {analytics.notificationPrefs?.unusualSpendingAlerts === false ? <section className="app-card"><EmptyState title="Unusual spending alerts are off" to="/profile" actionLabel="Notification preferences" /></section> : <AnomalyFeed anomalies={analytics.anomalies} hasHistory={analytics.transactionCount > 0} />}
+              <HealthScoreBreakdown healthScore={analytics.healthScore} hasHistory={analytics.transactionCount > 0} />
+            </div>
+            <div className="section-heading"><div><h2>Your goals</h2><p>Track progress and review the week.</p></div></div>
+            <div className="insights-grid"><GoalsList goals={goals} onCreate={createGoal} onUpdate={updateGoal} onDelete={deleteGoal} />{analytics.notificationPrefs?.weeklySummary !== false && <WeeklyDigest digest={analytics.weeklyDigest} />}</div>
           </div>
         ) : null}
       </div>

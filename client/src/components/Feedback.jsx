@@ -16,9 +16,9 @@ export function ErrorState({ message, onRetry }) {
 }
 
 export function EmptyState({ title, children, to, actionLabel, onAction }) {
-  return <div className="my-5 rounded-2xl border border-dashed border-border p-5 text-center">
+  return <div className="empty-state">
     <p className="font-semibold text-ink">{title}</p>
     {children && <p className="mt-2 text-sm leading-6 text-ink-secondary">{children}</p>}
-    {actionLabel && (to ? <Link className="action-button mt-4 inline-flex" to={to}>{actionLabel}</Link> : <button type="button" className="action-button mt-4" onClick={onAction}>{actionLabel}</button>)}
+    {actionLabel && (to ? <Link className="quiet-button mt-4 inline-flex" to={to}>{actionLabel}</Link> : <button type="button" className="quiet-button mt-4" onClick={onAction}>{actionLabel}</button>)}
   </div>
 }

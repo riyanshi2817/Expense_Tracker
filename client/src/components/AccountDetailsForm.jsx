@@ -48,13 +48,13 @@ function AccountDetailsForm({ profile, onUpdated, onSuccess }) {
   }
 
   return (
-    <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card sm:p-7">
+    <section className="app-card account-details-panel">
       <div>
-        <h2 className="font-display text-xl font-bold">Account details</h2>
-        <p className="mt-1 text-sm text-ink-secondary">Keep your monthly plan grounded in the right numbers.</p>
+        <h2 className="app-card-title">Monthly plan</h2>
+        <p className="mt-1 text-sm text-ink-secondary">These numbers power your daily spending estimate.</p>
       </div>
 
-      <form noValidate onSubmit={handleSubmit} className="mt-6 space-y-5">
+      <form noValidate onSubmit={handleSubmit} className="account-details-form">
         <label className="block text-sm font-semibold text-ink-secondary">
           Monthly salary
           <div className="relative mt-2">

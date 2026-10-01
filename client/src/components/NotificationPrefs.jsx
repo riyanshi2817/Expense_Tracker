@@ -16,7 +16,7 @@ const preferenceOptions = [
   {
     key: 'weeklySummary',
     label: 'Weekly summary',
-    description: 'Show your last seven days of income and spending in the Weekly Digest on Insights.',
+    description: 'Include the last seven days in your Insights digest.',
   },
 ]
 
@@ -51,10 +51,10 @@ function NotificationPrefs({ preferences, onUpdated, onSuccess }) {
   }
 
   return (
-    <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card sm:p-7">
+    <section className="app-card notification-panel">
       <div>
-        <h2 className="font-display text-xl font-bold">Notifications</h2>
-        <p className="mt-1 text-sm text-ink-secondary">Choose the signals worth interrupting your day for.</p>
+        <h2 className="app-card-title">Notifications</h2>
+        <p className="mt-1 text-sm text-ink-secondary">Choose which reminders and insights you see.</p>
       </div>
 
       <div className="mt-6 divide-y divide-border">

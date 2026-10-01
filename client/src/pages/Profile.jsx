@@ -85,41 +85,28 @@ function Profile() {
           </section>
         ) : profile ? (
           <div>
-          <section className="app-card mb-5 flex flex-wrap items-center gap-4">
-            <div aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-onprimary">{profile.name?.trim()?.[0]?.toUpperCase() || 'C'}</div>
-            <div className="min-w-0"><p className="font-display text-lg font-extrabold text-ink">{profile.name}</p><p className="break-all text-sm text-ink-secondary">{profile.email}</p></div>
-          </section>
-          <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
-            <AccountDetailsForm profile={profile} onUpdated={updateProfile} onSuccess={setToast} />
-
-            <div className="space-y-6">
+            <section className="app-card profile-identity">
+              <div aria-hidden="true" className="profile-avatar">{profile.name?.trim()?.[0]?.toUpperCase() || 'C'}</div>
+              <div className="min-w-0"><p className="page-eyebrow">Personal account</p><h2>{profile.name}</h2><p>{profile.email}</p></div>
+            </section>
+            <div className="settings-grid">
+              <div className="settings-column">
+                <AccountDetailsForm profile={profile} onUpdated={updateProfile} onSuccess={setToast} />
+                <section className="app-card settings-note"><h2 className="app-card-title">How your plan works</h2><p>ClearCash uses your income and fixed costs to estimate what is safe to spend. Keep these figures current as your monthly commitments change.</p></section>
+              </div>
+              <div className="settings-column">
               <NotificationPrefs
                 preferences={{ ...defaultPreferences, ...profile.notificationPrefs }}
                 onUpdated={updateProfile}
                 onSuccess={setToast}
               />
-
-              <section className="feature-card">
-                <div className="flex items-start gap-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-elevated text-accent-soft">
-                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                      <path d="M4 7h16M7 3v4m10-4v4M5 11h14v9H5z" />
-                    </svg>
-                  </span>
-                  <div>
-                    <h2 className="font-display text-lg font-bold">Manual entry mode</h2>
-                    <p className="mt-1 text-sm leading-6 text-ink-secondary">Add transactions and subscriptions yourself. Bank sync is coming soon.</p>
-                  </div>
-                </div>
-              </section>
-
-              <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
-                <h2 className="font-display text-lg font-bold">Session</h2>
-                <p className="mb-5 mt-1 text-sm text-ink-secondary">Signing out clears your saved session from this device.</p>
+              <section className="app-card session-panel">
+                <h2 className="app-card-title">Your session</h2>
+                <p>Sign out of ClearCash on this device.</p>
                 <LogoutButton />
               </section>
+              </div>
             </div>
-          </div>
           </div>
         ) : null}
       </div>
