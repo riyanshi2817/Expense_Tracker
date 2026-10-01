@@ -2,6 +2,7 @@ import { apiError, validEmail } from '../utils/validation'
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/authContext'
+import ThemeToggle from '../components/ThemeToggle'
 
 function Login() {
   const { login, token } = useAuth()
@@ -50,8 +51,9 @@ function Login() {
 
   return (
     <main className="auth-page">
+      <div className="auth-theme-toggle"><ThemeToggle showLabel /></div>
       <aside className="auth-story">
-        <Link to="/login" className="auth-brand"><span className="auth-brand-mark">C</span> clearcash<span className="text-accent">.</span></Link>
+        <Link to="/login" className="auth-brand"><span className="auth-brand-mark">C</span> clearcash<span className="auth-brand-dot">.</span></Link>
         <div><p className="auth-kicker">Money, made clear</p><h2>Make room for what matters.</h2><p>Understand your spending, stay ahead of recurring costs, and find a little more breathing room each month.</p></div>
         <p className="auth-footnote">A calmer way to stay on top of your money.</p>
       </aside>

@@ -137,7 +137,7 @@ function GoalsList({ goals = [], onCreate, onUpdate, onDelete }) {
                       {confirmingId === goal._id ? (
                         <>
                           <button type="button" onClick={() => setConfirmingId(null)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-muted">Cancel</button>
-                          <button type="button" disabled={busy} onClick={async () => { setBusy(true); await onDelete(goal._id); setBusy(false); setConfirmingId(null) }} className="rounded-lg bg-danger px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Confirm</button>
+                          <button type="button" disabled={busy} onClick={async () => { setBusy(true); await onDelete(goal._id); setBusy(false); setConfirmingId(null) }} className="rounded-lg bg-dangerfill px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Confirm</button>
                         </>
                       ) : (
                         <button type="button" onClick={() => setConfirmingId(goal._id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10">Delete</button>

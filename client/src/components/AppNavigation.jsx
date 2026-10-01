@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
+import ThemeToggle from './ThemeToggle'
 
 const items = [
   { to: '/home', label: 'Overview', icon: 'home' },
@@ -27,7 +28,7 @@ function AppNavigation() {
   return (
     <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-50 flex items-center border-t border-border bg-surface-elevated px-2 py-2 lg:inset-y-0 lg:left-0 lg:right-auto lg:w-[244px] lg:flex-col lg:items-stretch lg:border-r lg:border-t-0 lg:px-5 lg:py-7">
       <div className="mb-11 hidden items-center gap-3 px-2 lg:flex">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl font-black text-ink">C</span>
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl font-black text-onprimary">C</span>
         <span className="font-display text-lg font-extrabold tracking-tight text-ink">clearcash<span className="text-success">.</span></span>
       </div>
       <p className="mb-3 hidden px-4 text-[11px] font-bold uppercase tracking-[.16em] text-ink-muted lg:block">Workspace</p>
@@ -39,7 +40,7 @@ function AppNavigation() {
               className={({ isActive }) =>
                 `flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[0.67rem] font-semibold transition lg:flex-row lg:gap-3 lg:px-4 lg:py-3 lg:text-sm ${
                   isActive
-                    ? 'bg-accent text-ink'
+                    ? 'bg-accent text-onprimary'
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                 }`
               }
@@ -50,7 +51,8 @@ function AppNavigation() {
           </li>
         ))}
       </ul>
-      <div className="order-last shrink-0 px-1 lg:order-none lg:mt-auto lg:border-t lg:border-border lg:px-3 lg:pt-5">
+      <div className="order-last flex shrink-0 items-center gap-2 px-1 lg:order-none lg:mt-auto lg:border-t lg:border-border lg:px-1 lg:pt-5">
+        <ThemeToggle showLabel />
         <NotificationBell />
       </div>
     </nav>

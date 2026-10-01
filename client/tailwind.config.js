@@ -5,8 +5,10 @@ export default {
     colors: {
       surface: { DEFAULT: 'var(--background)', elevated: 'var(--card)', muted: 'var(--muted)' },
       accent: { DEFAULT: 'var(--primary)', soft: 'var(--primary-foreground)' },
+      onprimary: 'var(--on-primary)',
+      inverse: { DEFAULT: 'var(--inverse)', foreground: 'var(--inverse-foreground)' },
       ink: { DEFAULT: 'var(--foreground)', secondary: 'var(--secondary-foreground)', muted: 'var(--muted-foreground)' },
-      border: 'var(--border)', success: 'var(--success)', warning: 'var(--warning)', danger: 'var(--destructive)',
+      border: 'var(--border)', success: 'var(--success)', warning: 'var(--warning)', danger: 'var(--destructive)', dangerfill: 'var(--destructive-fill)',
     },
     fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'], display: ['Manrope', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
     spacing: { 18: '4.5rem', 22: '5.5rem' },

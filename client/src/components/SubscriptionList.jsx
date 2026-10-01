@@ -69,7 +69,7 @@ function SubscriptionList({ subscriptions, pendingIds, onToggle, onDelete, onEdi
                         setConfirmingId(null)
                         onDelete(subscription)
                       }}
-                      className="rounded-xl bg-danger px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                      className="rounded-xl bg-dangerfill px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
                     >
                       Confirm delete
                     </button>

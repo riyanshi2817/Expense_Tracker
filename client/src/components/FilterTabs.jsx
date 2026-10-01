@@ -16,7 +16,7 @@ function FilterTabs({ value, onChange }) {
           onClick={() => onChange(filter.value)}
           className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
             value === filter.value
-              ? 'bg-accent text-ink'
+              ? 'bg-accent text-onprimary'
               : 'text-ink-secondary hover:text-ink'
           }`}
         >

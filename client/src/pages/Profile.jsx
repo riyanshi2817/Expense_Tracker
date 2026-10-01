@@ -86,7 +86,7 @@ function Profile() {
         ) : profile ? (
           <div>
           <section className="app-card mb-5 flex flex-wrap items-center gap-4">
-            <div aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-ink">{profile.name?.trim()?.[0]?.toUpperCase() || 'C'}</div>
+            <div aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent font-display text-xl font-extrabold text-onprimary">{profile.name?.trim()?.[0]?.toUpperCase() || 'C'}</div>
             <div className="min-w-0"><p className="font-display text-lg font-extrabold text-ink">{profile.name}</p><p className="break-all text-sm text-ink-secondary">{profile.email}</p></div>
           </section>
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
@@ -101,7 +101,7 @@ function Profile() {
 
               <section className="feature-card">
                 <div className="flex items-start gap-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-accent-soft">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-elevated text-accent-soft">
                     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                       <path d="M4 7h16M7 3v4m10-4v4M5 11h14v9H5z" />
                     </svg>
