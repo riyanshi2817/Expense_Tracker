@@ -49,13 +49,17 @@ function Login() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface px-5 py-12 text-ink">
-      <section className="w-full max-w-md rounded-card border border-border bg-surface-elevated p-7 shadow-card sm:p-9">
+    <main className="auth-page">
+      <aside className="auth-story">
+        <Link to="/login" className="auth-brand"><span className="auth-brand-mark">C</span> clearcash<span className="text-accent">.</span></Link>
+        <div><p className="auth-kicker">Money, made clear</p><h2>Make room for what matters.</h2><p>Understand your spending, stay ahead of recurring costs, and find a little more breathing room each month.</p></div>
+        <p className="auth-footnote">A calmer way to stay on top of your money.</p>
+      </aside>
+      <section className="auth-form-panel">
+      <div className="auth-form-card">
         <div className="mb-8">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-accent-soft">
-            ClearCash
-          </p>
-          <h1 className="font-display text-3xl font-bold">Welcome back</h1>
+          <p className="page-eyebrow">Welcome back</p>
+          <h1 className="font-display text-4xl font-extrabold tracking-tight">Sign in</h1>
           <p className="mt-2 text-sm text-ink-secondary">
             Sign in to see what is safe to spend today.
           </p>
@@ -65,7 +69,7 @@ function Login() {
           <label className="block text-sm font-medium text-ink-secondary">
             Email
             <input
-              className="mt-2 w-full rounded-xl border border-border bg-surface-muted px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="form-input"
               type="email"
               name="email"
               value={form.email}
@@ -79,7 +83,7 @@ function Login() {
           <label className="block text-sm font-medium text-ink-secondary">
             Password
             <input
-              className="mt-2 w-full rounded-xl border border-border bg-surface-muted px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="form-input"
               type="password"
               name="password"
               value={form.password}
@@ -97,7 +101,7 @@ function Login() {
           )}
 
           <button
-            className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-white shadow-glow transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+            className="action-button w-full"
             type="submit"
             disabled={submitting}
           >
@@ -111,6 +115,7 @@ function Login() {
             Create an account
           </Link>
         </p>
+      </div>
       </section>
     </main>
   )

@@ -97,12 +97,12 @@ function Insights() {
   }
 
   return (
-    <main className="min-h-screen bg-surface pb-24 text-ink lg:pb-0 lg:pl-24">
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-        <header className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent-soft">Behavior intelligence</p>
-          <h1 className="mt-2 font-display text-3xl font-bold">Insights</h1>
-          <p className="mt-2 max-w-2xl text-sm text-ink-secondary">See what changed, what looks unusual, and where your next financial win can come from.</p>
+    <main className="app-page">
+      <div className="page-container">
+        <header className="page-header">
+          <div><p className="page-eyebrow">The bigger picture</p>
+          <h1 className="page-title">Insights</h1>
+          <p className="page-description">See what changed, what looks unusual, and where your next financial win can come from.</p></div>
         </header>
 
         {(error || mutationError) && (

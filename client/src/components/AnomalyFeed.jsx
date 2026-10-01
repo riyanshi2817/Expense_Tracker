@@ -20,8 +20,7 @@ function AnomalyFeed({ anomalies = [], hasHistory = true }) {
   )
 
   return (
-    <section className="relative overflow-hidden rounded-card border border-danger/25 bg-gradient-to-br from-danger/10 via-surface-elevated to-surface-elevated p-6 shadow-card lg:p-7">
-      <div className="absolute -right-14 -top-14 h-44 w-44 rounded-full bg-danger/10 blur-3xl" />
+    <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card lg:p-7">
       <div className="relative flex items-start justify-between gap-5">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-danger">Anomaly radar</p>

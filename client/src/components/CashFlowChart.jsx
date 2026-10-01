@@ -58,12 +58,12 @@ function CashFlowChart({ cashFlow = [] }) {
                 formatter={(value, name) => [formatCurrency(value), name]}
                 labelFormatter={(month) => `Month: ${month}`}
                 contentStyle={{
-                  background: '#192338',
-                  border: '1px solid #25314a',
+                  background: 'var(--card)',
+                  border: '1px solid var(--border)',
                   borderRadius: '12px',
-                  color: '#f7f8fc',
+                  color: 'var(--foreground)',
                 }}
-                cursor={{ fill: 'rgba(124, 108, 255, 0.08)' }}
+                cursor={{ fill: 'var(--muted)' }}
               />
               <Legend wrapperStyle={{ color: 'var(--chart-text)', paddingTop: 12 }} />
               <Bar dataKey="income" name="Income" fill="var(--chart-success)" radius={[6, 6, 0, 0]} />

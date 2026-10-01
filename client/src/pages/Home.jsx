@@ -73,21 +73,20 @@ function Home() {
   }, [logout, refreshKey])
 
   return (
-    <main className="min-h-screen bg-surface pb-24 text-ink lg:pb-0 lg:pl-24">
-      <div className="mx-auto max-w-7xl px-5 py-7 sm:px-8 lg:px-10">
-        <header className="mb-9 flex flex-wrap items-center justify-between gap-5">
+    <main className="app-page">
+      <div className="page-container">
+        <header className="page-header">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent-soft">
-              ClearCash
-            </p>
-            <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
+            <p className="page-eyebrow">Your overview</p>
+            <h1 className="page-title">
               {user?.name ? `Good to see you, ${user.name}` : 'Your money, clearly'}
             </h1>
+            <p className="page-description">A clear view of what is available, what is coming up, and where your money went.</p>
           </div>
           <button
             type="button"
             onClick={logout}
-            className="rounded-xl border border-border bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink-secondary transition hover:border-accent hover:text-ink"
+            className="quiet-button"
           >
             Log out
           </button>
@@ -100,7 +99,7 @@ function Home() {
         ) : (
           <div className="space-y-6">
             {!summary.cashFlow.length && <EmptyState title="Welcome to your fresh start" to="/home#transactions" actionLabel="Add your first transaction">Add some income or an expense, then set your monthly budget in Profile.</EmptyState>}
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.75fr)]">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.75fr)]">
               <HeroCard
                 salary={summary.salary}
                 fixedCommitments={summary.fixedCommitments}
@@ -110,12 +109,12 @@ function Home() {
               <HealthScoreRing score={analytics.healthScore?.score} hasHistory={analytics.transactionCount > 0} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5">
               <MonthlyWasteBanner monthlyWaste={summary.monthlyWaste} />
               <DaysLeftCard daysLeft={summary.daysLeftInMonth} />
             </div>
 
-            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.8fr)]">
+            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.8fr)]">
               <CashFlowChart cashFlow={summary.cashFlow} />
               <UpcomingDebits subscriptions={subscriptions} />
             </div>

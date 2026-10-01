@@ -8,7 +8,7 @@ const trendStyles = {
 
 function CategoryTrends({ trends = [] }) {
   return (
-    <section className="rounded-card border border-accent/20 bg-gradient-to-br from-accent/10 via-surface-elevated to-surface-elevated p-6 shadow-card lg:p-7">
+    <section className="rounded-card border border-border bg-surface-elevated p-6 shadow-card lg:p-7">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-soft">Momentum</p>
       <h2 className="mt-2 font-display text-2xl font-bold">Category trends</h2>
       <p className="mt-1 text-sm text-ink-secondary">This month compared with your previous three-month average.</p>
@@ -22,7 +22,7 @@ function CategoryTrends({ trends = [] }) {
             const percent = Number(trend.percentChange) || 0
 
             return (
-              <li key={trend.category} className="rounded-2xl border border-border/80 bg-surface/40 p-4 transition hover:border-accent/40">
+              <li key={trend.category} className="rounded-2xl bg-surface-muted p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="truncate font-semibold">{trend.category}</p>
                   <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-xl font-bold ${style.background} ${style.color}`} aria-hidden="true">

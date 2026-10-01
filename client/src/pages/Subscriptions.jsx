@@ -101,13 +101,13 @@ function Subscriptions() {
   }
 
   return (
-    <main className="min-h-screen bg-surface pb-24 text-ink lg:pb-0 lg:pl-24">
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
-        <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <main className="app-page">
+      <div className="page-container max-w-6xl">
+        <header className="page-header">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent-soft">Recurring spend</p>
-            <h1 className="mt-2 font-display text-3xl font-bold">Subscriptions</h1>
-            <p className="mt-2 text-sm text-ink-secondary">Spot services you pay for but no longer use.</p>
+            <p className="page-eyebrow">Recurring spend</p>
+            <h1 className="page-title">Subscriptions</h1>
+            <p className="page-description">Spot services you pay for but no longer use.</p>
           </div>
           <FilterTabs value={filter} onChange={setFilter} />
         </header>

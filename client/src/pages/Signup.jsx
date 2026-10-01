@@ -56,13 +56,17 @@ function Signup() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface px-5 py-12 text-ink">
-      <section className="w-full max-w-md rounded-card border border-border bg-surface-elevated p-7 shadow-card sm:p-9">
+    <main className="auth-page">
+      <aside className="auth-story">
+        <Link to="/login" className="auth-brand"><span className="auth-brand-mark">C</span> clearcash<span className="text-accent">.</span></Link>
+        <div><p className="auth-kicker">A fresh start</p><h2>See the whole picture.</h2><p>Bring your spending, subscriptions, and financial goals into one thoughtful place.</p></div>
+        <p className="auth-footnote">A calmer way to stay on top of your money.</p>
+      </aside>
+      <section className="auth-form-panel">
+      <div className="auth-form-card">
         <div className="mb-8">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-accent-soft">
-            ClearCash
-          </p>
-          <h1 className="font-display text-3xl font-bold">Start with clarity</h1>
+          <p className="page-eyebrow">Get started</p>
+          <h1 className="font-display text-4xl font-extrabold tracking-tight">Create your account</h1>
           <p className="mt-2 text-sm text-ink-secondary">
             Create your account and build a calmer money routine.
           </p>
@@ -72,7 +76,7 @@ function Signup() {
           <label className="block text-sm font-medium text-ink-secondary">
             Name
             <input
-              className="mt-2 w-full rounded-xl border border-border bg-surface-muted px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="form-input"
               name="name"
               value={form.name}
               onChange={handleChange}
@@ -85,7 +89,7 @@ function Signup() {
           <label className="block text-sm font-medium text-ink-secondary">
             Email
             <input
-              className="mt-2 w-full rounded-xl border border-border bg-surface-muted px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="form-input"
               type="email"
               name="email"
               value={form.email}
@@ -99,7 +103,7 @@ function Signup() {
           <label className="block text-sm font-medium text-ink-secondary">
             Password
             <input
-              className="mt-2 w-full rounded-xl border border-border bg-surface-muted px-4 py-3 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="form-input"
               type="password"
               name="password"
               value={form.password}
@@ -118,7 +122,7 @@ function Signup() {
           )}
 
           <button
-            className="w-full rounded-xl bg-accent px-4 py-3 font-semibold text-white shadow-glow transition hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-60"
+            className="action-button w-full"
             type="submit"
             disabled={submitting}
           >
@@ -132,6 +136,7 @@ function Signup() {
             Sign in
           </Link>
         </p>
+      </div>
       </section>
     </main>
   )

@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import NotificationBell from './NotificationBell'
 
 const items = [
-  { to: '/home', label: 'Home', icon: 'home' },
+  { to: '/home', label: 'Overview', icon: 'home' },
   { to: '/subscriptions', label: 'Subscriptions', icon: 'card' },
   { to: '/insights', label: 'Insights', icon: 'spark' },
   { to: '/profile', label: 'Profile', icon: 'user' },
@@ -25,22 +25,21 @@ function NavIcon({ name }) {
 
 function AppNavigation() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-1 border-t border-border bg-surface-elevated/95 px-2 py-2 backdrop-blur-xl lg:inset-y-0 lg:left-0 lg:right-auto lg:flex lg:w-24 lg:flex-col lg:items-stretch lg:border-r lg:border-t-0 lg:px-3 lg:py-6">
-      <div className="mb-9 hidden h-11 w-11 items-center justify-center self-center rounded-2xl bg-accent font-display text-lg font-bold text-white shadow-glow lg:flex">
-        C
+    <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-50 flex items-center border-t border-border bg-surface-elevated px-2 py-2 lg:inset-y-0 lg:left-0 lg:right-auto lg:w-[244px] lg:flex-col lg:items-stretch lg:border-r lg:border-t-0 lg:px-5 lg:py-7">
+      <div className="mb-11 hidden items-center gap-3 px-2 lg:flex">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl font-black text-ink">C</span>
+        <span className="font-display text-lg font-extrabold tracking-tight text-ink">clearcash<span className="text-success">.</span></span>
       </div>
-      <div className="order-last shrink-0 px-1 lg:order-none lg:mb-6 lg:self-center lg:px-0">
-        <NotificationBell />
-      </div>
-      <ul className="flex min-w-0 flex-1 items-center justify-around gap-1 lg:flex-1 lg:flex-col lg:justify-start lg:gap-3">
+      <p className="mb-3 hidden px-4 text-[11px] font-bold uppercase tracking-[.16em] text-ink-muted lg:block">Workspace</p>
+      <ul className="flex min-w-0 flex-1 items-center justify-around gap-1 lg:flex-col lg:items-stretch lg:justify-start lg:gap-1">
         {items.map((item) => (
-          <li key={item.to} className="flex-1 lg:w-full lg:flex-none">
+          <li key={item.to} className="min-w-0 flex-1 lg:w-full lg:flex-none">
             <NavLink
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[0.68rem] font-medium transition lg:py-3 ${
+                `flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[0.67rem] font-semibold transition lg:flex-row lg:gap-3 lg:px-4 lg:py-3 lg:text-sm ${
                   isActive
-                    ? 'bg-accent/15 text-accent-soft'
+                    ? 'bg-accent text-ink'
                     : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                 }`
               }
@@ -51,6 +50,9 @@ function AppNavigation() {
           </li>
         ))}
       </ul>
+      <div className="order-last shrink-0 px-1 lg:order-none lg:mt-auto lg:border-t lg:border-border lg:px-3 lg:pt-5">
+        <NotificationBell />
+      </div>
     </nav>
   )
 }

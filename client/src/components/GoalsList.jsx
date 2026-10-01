@@ -99,7 +99,7 @@ function GoalsList({ goals = [], onCreate, onUpdate, onDelete }) {
         <GoalFields values={newGoal} onChange={updateValues(setNewGoal)} idPrefix="new-goal" />
         <div className="mt-3 flex items-center justify-between gap-3">
           <p role="alert" className="text-xs text-danger">{!editingId && formError}</p>
-          <button type="submit" disabled={busy} className="ml-auto rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? 'Saving...' : 'Add goal'}</button>
+          <button type="submit" disabled={busy} className="action-button ml-auto">{busy ? 'Saving...' : 'Add goal'}</button>
         </div>
       </form>
 
@@ -117,7 +117,7 @@ function GoalsList({ goals = [], onCreate, onUpdate, onDelete }) {
                     <p role="alert" className="mt-2 text-xs text-danger">{formError}</p>
                     <div className="mt-3 flex justify-end gap-2">
                       <button type="button" onClick={() => setEditingId(null)} className="rounded-xl px-3 py-2 text-sm font-semibold text-ink-secondary">Cancel</button>
-                      <button type="submit" disabled={busy} className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button>
+                      <button type="submit" disabled={busy} className="action-button">{busy ? 'Saving...' : 'Save'}</button>
                     </div>
                   </form>
                 ) : (

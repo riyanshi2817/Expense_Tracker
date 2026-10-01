@@ -54,17 +54,6 @@ function AccountDetailsForm({ profile, onUpdated, onSuccess }) {
         <p className="mt-1 text-sm text-ink-secondary">Keep your monthly plan grounded in the right numbers.</p>
       </div>
 
-      <div className="mt-6 grid gap-3 rounded-2xl border border-border bg-surface/35 p-4 sm:grid-cols-2">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Name</p>
-          <p className="mt-1 truncate font-medium text-ink">{profile.name}</p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Email</p>
-          <p className="mt-1 truncate font-medium text-ink">{profile.email}</p>
-        </div>
-      </div>
-
       <form noValidate onSubmit={handleSubmit} className="mt-6 space-y-5">
         <label className="block text-sm font-semibold text-ink-secondary">
           Monthly salary
@@ -104,7 +93,7 @@ function AccountDetailsForm({ profile, onUpdated, onSuccess }) {
         {error && <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
         <div className="flex justify-end">
-          <button type="submit" disabled={saving} className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-accent-soft disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={saving} className="action-button">
             {saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
