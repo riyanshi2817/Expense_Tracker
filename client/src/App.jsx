@@ -15,13 +15,16 @@ function LandingRedirect() {
   return <Navigate to={token ? '/home' : '/login'} replace />
 }
 
+function AuthFallback() {
+  return <main className="min-h-screen bg-surface p-6"><LoadingState label="Loading page" /></main>
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<main className="min-h-screen bg-surface p-6"><LoadingState label="Loading page" /></main>}>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Suspense fallback={<AuthFallback />}><Login /></Suspense>} />
+        <Route path="/signup" element={<Suspense fallback={<AuthFallback />}><Signup /></Suspense>} />
         <Route element={<AppShell />}>
           <Route path="/home" element={<Home />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
@@ -30,7 +33,6 @@ function App() {
         </Route>
         <Route path="*" element={<LandingRedirect />} />
       </Routes>
-      </Suspense>
     </BrowserRouter>
   )
 }

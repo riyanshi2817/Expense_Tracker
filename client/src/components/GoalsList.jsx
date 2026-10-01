@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { validAmount } from '../utils/validation'
+import Spinner from './Spinner'
 
 const emptyGoal = { name: '', targetAmount: '', currentAmount: '0' }
 
@@ -99,7 +100,7 @@ function GoalsList({ goals = [], onCreate, onUpdate, onDelete }) {
         <GoalFields values={newGoal} onChange={updateValues(setNewGoal)} idPrefix="new-goal" />
         <div className="mt-3 flex items-center justify-between gap-3">
           <p role="alert" className="text-xs text-danger">{!editingId && formError}</p>
-          <button type="submit" disabled={busy} className="action-button ml-auto">{busy ? 'Saving...' : 'Add goal'}</button>
+          <button type="submit" disabled={busy} aria-busy={busy} className="action-button ml-auto">{busy && <Spinner />}{busy ? 'Saving…' : 'Add goal'}</button>
         </div>
       </form>
 
@@ -117,7 +118,7 @@ function GoalsList({ goals = [], onCreate, onUpdate, onDelete }) {
                     <p role="alert" className="mt-2 text-xs text-danger">{formError}</p>
                     <div className="mt-3 flex justify-end gap-2">
                       <button type="button" onClick={() => setEditingId(null)} className="rounded-xl px-3 py-2 text-sm font-semibold text-ink-secondary">Cancel</button>
-                      <button type="submit" disabled={busy} className="action-button">{busy ? 'Saving...' : 'Save'}</button>
+                      <button type="submit" disabled={busy} aria-busy={busy} className="action-button">{busy && <Spinner />}{busy ? 'Saving…' : 'Save'}</button>
                     </div>
                   </form>
                 ) : (
@@ -137,7 +138,7 @@ function GoalsList({ goals = [], onCreate, onUpdate, onDelete }) {
                       {confirmingId === goal._id ? (
                         <>
                           <button type="button" onClick={() => setConfirmingId(null)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-ink-muted">Cancel</button>
-                          <button type="button" disabled={busy} onClick={async () => { setBusy(true); await onDelete(goal._id); setBusy(false); setConfirmingId(null) }} className="rounded-lg bg-dangerfill px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">Confirm</button>
+                          <button type="button" disabled={busy} aria-busy={busy} onClick={async () => { setBusy(true); await onDelete(goal._id); setBusy(false); setConfirmingId(null) }} className="rounded-lg bg-dangerfill px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">{busy ? 'Deleting…' : 'Confirm'}</button>
                         </>
                       ) : (
                         <button type="button" onClick={() => setConfirmingId(goal._id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10">Delete</button>

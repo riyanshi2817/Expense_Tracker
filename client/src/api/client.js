@@ -21,6 +21,7 @@ client.interceptors.request.use((config) => {
 })
 
 client.interceptors.response.use((response) => response, (error) => {
+  if (axios.isCancel(error)) return Promise.reject(error)
   const status = error.response?.status
   const url = error.config?.url
   if (import.meta.env.DEV) {

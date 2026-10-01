@@ -1,6 +1,7 @@
 import { apiError } from '../utils/validation'
 import { useState } from 'react'
 import client from '../api/client'
+import Spinner from './Spinner'
 
 function AccountDetailsForm({ profile, onUpdated, onSuccess }) {
   const [values, setValues] = useState({
@@ -93,8 +94,8 @@ function AccountDetailsForm({ profile, onUpdated, onSuccess }) {
         {error && <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
         <div className="flex justify-end">
-          <button type="submit" disabled={saving} className="action-button">
-            {saving ? 'Saving…' : 'Save changes'}
+          <button type="submit" disabled={saving} aria-busy={saving} className="action-button">
+            {saving && <Spinner />}{saving ? 'Saving…' : 'Save changes'}
           </button>
         </div>
       </form>

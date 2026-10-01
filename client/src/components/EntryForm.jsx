@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react'
 import { apiError, validateEntry } from '../utils/validation'
 import { ErrorState } from './Feedback'
+import Spinner from './Spinner'
 
 function defaults(kind) {
   const today = new Date()
@@ -60,7 +61,7 @@ export default function EntryForm({ kind, initial, onSave, onCancel }) {
     {success && <p role="status" className="mt-3 text-sm text-success">{success}</p>}
     <div className="entry-form-actions">
       {onCancel && <button type="button" disabled={busy} className="quiet-button" onClick={onCancel}>Cancel</button>}
-      <button className="action-button" disabled={busy}>{busy ? 'Saving...' : initial ? 'Save changes' : 'Add ' + kind}</button>
+      <button className="action-button" disabled={busy} aria-busy={busy}>{busy && <Spinner />}{busy ? 'Saving…' : initial ? 'Save changes' : 'Add ' + kind}</button>
     </div>
   </form>
 }

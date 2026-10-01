@@ -1,28 +1,38 @@
 import { apiError } from '../utils/validation'
-import { LoadingState } from '../components/Feedback'
 import { useEffect, useState } from 'react'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import { invalidateFinancialData, queryFns, queryKeys } from '../api/queries'
 import EntryForm from '../components/EntryForm'
-import { ErrorState } from '../components/Feedback'
+import { ErrorState, FetchingSurface, SubscriptionsSkeleton } from '../components/Feedback'
 import FilterTabs from '../components/FilterTabs'
 import SubscriptionList from '../components/SubscriptionList'
 import WasteBanner from '../components/WasteBanner'
-import { useAuth } from '../context/authContext'
 import { useLocation } from 'react-router-dom'
 
 function Subscriptions() {
-  const { logout } = useAuth()
+  const queryClient = useQueryClient()
   const location = useLocation()
   const [filter, setFilter] = useState('all')
-  const [subscriptions, setSubscriptions] = useState([])
-  const [waste, setWaste] = useState({ totalMonthlyRecurring: 0, monthlyWaste: 0, potentialSavings: 0, unusedSubscriptionCount: 0 })
-  const [pendingIds, setPendingIds] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const listQuery = useQuery({ queryKey: queryKeys.subscriptionList(filter), queryFn: queryFns.subscriptions(filter), placeholderData: keepPreviousData })
+  const wasteQuery = useQuery({ queryKey: queryKeys.subscriptionWaste, queryFn: queryFns.subscriptionWaste })
+  const subscriptions = listQuery.data?.subscriptions || []
+  const waste = wasteQuery.data || { totalMonthlyRecurring: 0, monthlyWaste: 0, potentialSavings: 0, unusedSubscriptionCount: 0 }
+  const loading = listQuery.isPending || wasteQuery.isPending
+  const error = [listQuery, wasteQuery].find((query) => query.isError && !query.data)?.error
+  const refreshError = [listQuery, wasteQuery].find((query) => query.isError && query.data)?.error
   const [mutationError, setMutationError] = useState('')
   const [editing, setEditing] = useState(null)
   const [formOpen, setFormOpen] = useState(() => location.hash === '#subscription-form')
-  const [refreshKey, setRefreshKey] = useState(0)
+  const invalidateSubscriptions = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions }),
+    invalidateFinancialData(queryClient),
+  ])
+  const toggleMutation = useMutation({ mutationFn: ({ id, status }) => client.put(`/api/subscriptions/${id}`, { status }), onSuccess: invalidateSubscriptions })
+  const deleteMutation = useMutation({ mutationFn: (id) => client.delete(`/api/subscriptions/${id}`), onSuccess: invalidateSubscriptions })
+  const saveMutation = useMutation({ mutationFn: ({ id, values }) => id ? client.put(`/api/subscriptions/${id}`, values) : client.post('/api/subscriptions', values), onSuccess: invalidateSubscriptions })
+  const pendingIds = [toggleMutation, deleteMutation].filter((mutation) => mutation.isPending).map((mutation) => mutation.variables?.id || mutation.variables)
+  const fetching = !loading && !saveMutation.isPending && !toggleMutation.isPending && !deleteMutation.isPending && (listQuery.isFetching || wasteQuery.isFetching)
 
   useEffect(() => {
     if (location.hash !== '#subscription-form') return undefined
@@ -30,84 +40,31 @@ function Subscriptions() {
     return () => cancelAnimationFrame(frame)
   }, [location.hash])
 
-  useEffect(() => {
-    let ignore = false
-
-    const load = async () => {
-      try {
-        setLoading(true)
-        setError('')
-        const params = filter === 'all' ? {} : { status: filter }
-        const [listResponse, wasteResponse] = await Promise.all([
-          client.get('/api/subscriptions', { params }),
-          client.get('/api/subscriptions/waste'),
-        ])
-
-        if (ignore) return
-        setSubscriptions(listResponse.data.subscriptions || [])
-        setWaste(wasteResponse.data)
-      } catch (requestError) {
-        if (ignore) return
-        if (requestError.response?.status === 401) {
-          logout()
-          return
-        }
-        setError(apiError(requestError, 'Unable to load subscriptions.'))
-      } finally {
-        if (!ignore) setLoading(false)
-      }
-    }
-
-    load()
-    return () => {
-      ignore = true
-    }
-  }, [filter, logout, refreshKey])
-
   const toggleSubscription = async (subscription) => {
     if (pendingIds.length) return
     setMutationError('')
-    const previousSubscriptions = subscriptions
     const nextStatus = subscription.status === 'active' ? 'unused' : 'active'
-    setPendingIds((current) => [...current, subscription._id])
-    setSubscriptions((current) =>
-      current.map((item) =>
-        item._id === subscription._id ? { ...item, status: nextStatus } : item,
-      ),
-    )
-
     try {
-      await client.put(`/api/subscriptions/${subscription._id}`, { status: nextStatus })
-      setRefreshKey((current) => current + 1)
+      await toggleMutation.mutateAsync({ id: subscription._id, status: nextStatus })
     } catch (requestError) {
-      setSubscriptions(previousSubscriptions)
       setMutationError(apiError(requestError, 'Unable to update subscription.'))
-    } finally {
-      setPendingIds((current) => current.filter((id) => id !== subscription._id))
     }
   }
 
   const deleteSubscription = async (subscription) => {
     if (pendingIds.length) return
     setMutationError('')
-    setPendingIds((current) => [...current, subscription._id])
     try {
-      await client.delete(`/api/subscriptions/${subscription._id}`)
-      setSubscriptions((current) => current.filter((item) => item._id !== subscription._id))
-      setRefreshKey((current) => current + 1)
+      await deleteMutation.mutateAsync(subscription._id)
     } catch (requestError) {
       setMutationError(apiError(requestError, 'Unable to delete subscription.'))
-    } finally {
-      setPendingIds((current) => current.filter((id) => id !== subscription._id))
     }
   }
 
   const saveSubscription = async (values) => {
-    if (editing) await client.put('/api/subscriptions/' + editing._id, values)
-    else await client.post('/api/subscriptions', values)
+    await saveMutation.mutateAsync({ id: editing?._id, values })
     setEditing(null)
     setFormOpen(false)
-    setRefreshKey((current) => current + 1)
   }
 
   const openNew = () => {
@@ -124,7 +81,7 @@ function Subscriptions() {
 
   return (
     <main className="app-page">
-      <div className="page-container max-w-6xl">
+      <div className="page-container">
         <header className="page-header">
           <div>
             <p className="page-eyebrow">Recurring spend</p>
@@ -133,12 +90,12 @@ function Subscriptions() {
           </div>
           <button type="button" className="action-button" onClick={openNew}>+ Add subscription</button>
         </header>
-        <ErrorState message={mutationError} />
+        <ErrorState message={mutationError || (refreshError && apiError(refreshError, 'Unable to refresh subscriptions.'))} onRetry={refreshError ? () => { listQuery.refetch(); wasteQuery.refetch() } : undefined} />
 
         {loading ? (
-          <LoadingState label="Loading subscriptions" />
-        ) : error ? <ErrorState message={error} onRetry={() => setRefreshKey((current) => current + 1)} /> : (
-          <div>
+          <SubscriptionsSkeleton />
+        ) : error ? <ErrorState message={apiError(error, 'Unable to load subscriptions.')} onRetry={() => { listQuery.refetch(); wasteQuery.refetch() }} /> : (
+          <FetchingSurface active={fetching} label="Refreshing subscriptions">
             <div className="subscription-summary-grid">
               <section className="app-card subscription-total"><p className="page-eyebrow">Monthly recurring</p><strong>{Number(waste.totalMonthlyRecurring || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}</strong><span>Across all subscriptions · yearly charges averaged monthly</span></section>
               <WasteBanner totalMonthlyCost={waste.monthlyWaste} unusedCount={waste.unusedSubscriptionCount} />
@@ -147,8 +104,8 @@ function Subscriptions() {
             {formOpen && <section id="subscription-form" className="app-card composer-panel subscription-composer"><EntryForm key={editing?._id || 'new'} kind="subscription" initial={editing} onSave={saveSubscription} onCancel={() => { setEditing(null); setFormOpen(false) }} /></section>}
 
             <div className="section-heading subscription-list-heading"><div><h2>Your subscriptions</h2><p>Review what renews and what you still use.</p></div><FilterTabs value={filter} onChange={setFilter} /></div>
-            <SubscriptionList onEdit={openEdit} filter={filter} onResetFilter={() => setFilter('all')} subscriptions={subscriptions} pendingIds={pendingIds} onToggle={toggleSubscription} onDelete={deleteSubscription} onAdd={openNew} />
-          </div>
+            <div aria-busy={listQuery.isFetching} className={listQuery.isPlaceholderData ? 'subscription-list-stale' : undefined}><SubscriptionList onEdit={openEdit} filter={filter} onResetFilter={() => setFilter('all')} subscriptions={subscriptions} pendingIds={pendingIds} togglingId={toggleMutation.isPending ? toggleMutation.variables?.id : null} deletingId={deleteMutation.isPending ? deleteMutation.variables : null} onToggle={toggleSubscription} onDelete={deleteSubscription} onAdd={openNew} /></div>
+          </FetchingSurface>
         )}
       </div>
     </main>

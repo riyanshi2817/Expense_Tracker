@@ -1,15 +1,17 @@
 import { apiError } from '../utils/validation'
-import SpendingMix from '../components/SpendingMix'
-import CashFlowChart from '../components/CashFlowChart'
+import { lazy, Suspense, useState } from 'react'
 import WeeklyDigest from '../components/WeeklyDigest'
-import { LoadingState, EmptyState } from '../components/Feedback'
-import { useEffect, useState } from 'react'
+import { ChartSkeleton, InsightsSkeleton, EmptyState, FetchingSurface } from '../components/Feedback'
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import { queryFns, queryKeys } from '../api/queries'
 import AnomalyFeed from '../components/AnomalyFeed'
 import CategoryTrends from '../components/CategoryTrends'
 import GoalsList from '../components/GoalsList'
 import HealthScoreBreakdown from '../components/HealthScoreBreakdown'
-import { useAuth } from '../context/authContext'
+
+const CashFlowChart = lazy(() => import('../components/CashFlowChart'))
+const SpendingMix = lazy(() => import('../components/SpendingMix'))
 
 const emptyAnalytics = {
   anomalies: [],
@@ -19,52 +21,29 @@ const emptyAnalytics = {
 }
 
 function Insights() {
-  const { logout } = useAuth()
-  const [analytics, setAnalytics] = useState(emptyAnalytics)
-  const [goals, setGoals] = useState([])
-  const [cashFlow, setCashFlow] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const queryClient = useQueryClient()
+  const [analyticsQuery, goalsQuery, summaryQuery] = useQueries({ queries: [
+    { queryKey: queryKeys.analytics, queryFn: queryFns.analytics },
+    { queryKey: queryKeys.goals, queryFn: queryFns.goals },
+    { queryKey: queryKeys.summary, queryFn: queryFns.summary },
+  ] })
+  const analytics = { ...emptyAnalytics, ...analyticsQuery.data }
+  const goals = goalsQuery.data?.goals || []
+  const cashFlow = summaryQuery.data?.cashFlow || []
+  const insightQueries = [analyticsQuery, goalsQuery, summaryQuery]
+  const loading = insightQueries.some((query) => query.isPending)
+  const error = insightQueries.find((query) => query.isError && !query.data)?.error
+  const refreshError = insightQueries.find((query) => query.isError && query.data)?.error
+  const fetching = !loading && insightQueries.some((query) => query.isFetching)
   const [mutationError, setMutationError] = useState('')
-  const [refreshKey, setRefreshKey] = useState(0)
-
-  useEffect(() => {
-    let ignore = false
-    const load = async () => {
-      try {
-        setLoading(true)
-        setError('')
-        const [analyticsResponse, goalsResponse, summaryResponse] = await Promise.all([
-          client.get('/api/dashboard/analytics'),
-          client.get('/api/goals'),
-          client.get('/api/dashboard/summary'),
-        ])
-        if (ignore) return
-        setAnalytics({ ...emptyAnalytics, ...analyticsResponse.data })
-        setGoals(goalsResponse.data.goals || [])
-        setCashFlow(summaryResponse.data.cashFlow || [])
-      } catch (requestError) {
-        if (ignore) return
-        if (requestError.response?.status === 401) {
-          logout()
-          return
-        }
-        setError(apiError(requestError, 'Unable to load insights.'))
-      } finally {
-        if (!ignore) setLoading(false)
-      }
-    }
-    load()
-    return () => {
-      ignore = true
-    }
-  }, [logout, refreshKey])
+  const createMutation = useMutation({ mutationFn: (goal) => client.post('/api/goals', goal), onSuccess: ({ data }) => queryClient.setQueryData(queryKeys.goals, (current) => ({ ...current, goals: [data.goal, ...(current?.goals || [])] })) })
+  const updateMutation = useMutation({ mutationFn: ({ id, updates }) => client.put(`/api/goals/${id}`, updates), onSuccess: ({ data }) => queryClient.setQueryData(queryKeys.goals, (current) => ({ ...current, goals: (current?.goals || []).map((goal) => goal._id === data.goal._id ? data.goal : goal) })) })
+  const deleteMutation = useMutation({ mutationFn: (id) => client.delete(`/api/goals/${id}`), onSuccess: (_response, id) => queryClient.setQueryData(queryKeys.goals, (current) => ({ ...current, goals: (current?.goals || []).filter((goal) => goal._id !== id) })) })
 
   const createGoal = async (goal) => {
     try {
       setMutationError('')
-      const { data } = await client.post('/api/goals', goal)
-      setGoals((current) => [data.goal, ...current])
+      await createMutation.mutateAsync(goal)
       return true
     } catch (requestError) {
       setMutationError(apiError(requestError, 'Unable to create goal.'))
@@ -75,8 +54,7 @@ function Insights() {
   const updateGoal = async (id, updates) => {
     try {
       setMutationError('')
-      const { data } = await client.put(`/api/goals/${id}`, updates)
-      setGoals((current) => current.map((goal) => (goal._id === id ? data.goal : goal)))
+      await updateMutation.mutateAsync({ id, updates })
       return true
     } catch (requestError) {
       setMutationError(apiError(requestError, 'Unable to update goal.'))
@@ -87,8 +65,7 @@ function Insights() {
   const deleteGoal = async (id) => {
     try {
       setMutationError('')
-      await client.delete(`/api/goals/${id}`)
-      setGoals((current) => current.filter((goal) => goal._id !== id))
+      await deleteMutation.mutateAsync(id)
       return true
     } catch (requestError) {
       setMutationError(apiError(requestError, 'Unable to delete goal.'))
@@ -105,11 +82,11 @@ function Insights() {
           <p className="page-description">Understand patterns in your spending and see how your goals are progressing.</p></div>
         </header>
 
-        {(error || mutationError) && (
+        {(error || refreshError || mutationError) && (
           <div role="alert" className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-            <span>{error || mutationError}</span>
-            {error ? (
-              <button type="button" onClick={() => setRefreshKey((current) => current + 1)} className="font-bold">Try again</button>
+            <span>{error ? apiError(error, 'Unable to load insights.') : refreshError ? apiError(refreshError, 'Unable to refresh insights.') : mutationError}</span>
+            {error || refreshError ? (
+              <button type="button" onClick={() => insightQueries.forEach((query) => query.refetch())} className="font-bold">Try again</button>
             ) : (
               <button type="button" onClick={() => setMutationError('')} className="font-bold">Dismiss</button>
             )}
@@ -117,12 +94,12 @@ function Insights() {
         )}
 
         {loading ? (
-          <LoadingState label="Loading insights" />
+          <InsightsSkeleton />
         ) : !error ? (
-          <div>
-            <CashFlowChart cashFlow={cashFlow} />
+          <FetchingSurface active={fetching} label="Refreshing insights">
+            <Suspense fallback={<ChartSkeleton />}><CashFlowChart cashFlow={cashFlow} /></Suspense>
             <div className="section-heading"><div><h2>Spending patterns</h2><p>Where your money is going and what has changed.</p></div></div>
-            <div className="insights-grid"><SpendingMix spendingMix={analytics.spendingMix} /><CategoryTrends trends={analytics.categoryTrends} /></div>
+            <div className="insights-grid"><Suspense fallback={<ChartSkeleton />}><SpendingMix spendingMix={analytics.spendingMix} /></Suspense><CategoryTrends trends={analytics.categoryTrends} /></div>
             <div className="section-heading"><div><h2>What to watch</h2><p>Signals that may need a closer look.</p></div></div>
             <div className="insights-grid">
               {analytics.notificationPrefs?.unusualSpendingAlerts === false ? <section className="app-card"><EmptyState title="Unusual spending alerts are off" to="/profile" actionLabel="Notification preferences" /></section> : <AnomalyFeed anomalies={analytics.anomalies} hasHistory={analytics.transactionCount > 0} />}
@@ -130,7 +107,7 @@ function Insights() {
             </div>
             <div className="section-heading"><div><h2>Your goals</h2><p>Track progress and review the week.</p></div></div>
             <div className="insights-grid"><GoalsList goals={goals} onCreate={createGoal} onUpdate={updateGoal} onDelete={deleteGoal} />{analytics.notificationPrefs?.weeklySummary !== false && <WeeklyDigest digest={analytics.weeklyDigest} />}</div>
-          </div>
+          </FetchingSurface>
         ) : null}
       </div>
     </main>

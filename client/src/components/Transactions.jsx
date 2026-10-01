@@ -1,41 +1,35 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import client from '../api/client'
+import { invalidateFinancialData, queryFns, queryKeys } from '../api/queries'
 import { apiError } from '../utils/validation'
 import EntryForm from './EntryForm'
-import { LoadingState, ErrorState, EmptyState } from './Feedback'
+import { TransactionsSkeleton, ErrorState, EmptyState, FetchingSurface } from './Feedback'
 
 const money = (value) => Number(value || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 })
 const dateLabel = (value) => new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 
-export default function Transactions({ onChanged, formOpen, onFormOpenChange }) {
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+export default function Transactions({ formOpen, onFormOpenChange }) {
+  const queryClient = useQueryClient()
+  const transactionsQuery = useQuery({ queryKey: queryKeys.transactions, queryFn: queryFns.transactions })
+  const items = transactionsQuery.data?.transactions || []
+  const saveMutation = useMutation({
+    mutationFn: ({ id, values }) => id ? client.put(`/api/transactions/${id}`, values) : client.post('/api/transactions', values),
+    onSuccess: async () => {
+      await Promise.all([queryClient.invalidateQueries({ queryKey: queryKeys.transactions }), invalidateFinancialData(queryClient)])
+    },
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (id) => client.delete(`/api/transactions/${id}`),
+    onSuccess: async () => {
+      await Promise.all([queryClient.invalidateQueries({ queryKey: queryKeys.transactions }), invalidateFinancialData(queryClient)])
+    },
+  })
   const [mutationError, setMutationError] = useState('')
-  const [refresh, setRefresh] = useState(0)
   const [editing, setEditing] = useState(null)
-  const [pending, setPending] = useState('')
   const [confirming, setConfirming] = useState('')
   const [limit, setLimit] = useState(8)
-  const hasLoaded = useRef(false)
-
-  useEffect(() => {
-    let active = true
-    const load = async () => {
-      if (!hasLoaded.current) setLoading(true)
-      setError('')
-      try {
-        const { data } = await client.get('/api/transactions')
-        if (active) { setItems(data.transactions || []); hasLoaded.current = true }
-      } catch (requestError) {
-        if (active) setError(apiError(requestError, 'Unable to load transactions.'))
-      } finally {
-        if (active) setLoading(false)
-      }
-    }
-    load()
-    return () => { active = false }
-  }, [refresh])
+  const pending = deleteMutation.isPending ? deleteMutation.variables : ''
 
   const openNew = () => {
     setEditing(null)
@@ -48,27 +42,19 @@ export default function Transactions({ onChanged, formOpen, onFormOpenChange }) 
   }
 
   const save = async (values) => {
-    if (editing) await client.put(`/api/transactions/${editing._id}`, values)
-    else await client.post('/api/transactions', values)
+    await saveMutation.mutateAsync({ id: editing?._id, values })
     closeForm()
-    setRefresh((value) => value + 1)
-    onChanged()
   }
 
   const remove = async (id) => {
     if (pending) return
-    setPending(id)
     setMutationError('')
     try {
-      await client.delete(`/api/transactions/${id}`)
-      setItems((current) => current.filter((item) => item._id !== id))
+      await deleteMutation.mutateAsync(id)
       setConfirming('')
       if (editing?._id === id) closeForm()
-      onChanged()
     } catch (requestError) {
       setMutationError(apiError(requestError, 'Unable to delete transaction.'))
-    } finally {
-      setPending('')
     }
   }
 
@@ -86,8 +72,10 @@ export default function Transactions({ onChanged, formOpen, onFormOpenChange }) 
 
     {formOpen && <div id="transaction-form" className="composer-panel"><EntryForm key={editing?._id || 'new'} kind="transaction" initial={editing} onSave={save} onCancel={closeForm} /></div>}
     <ErrorState message={mutationError} />
+    {transactionsQuery.isError && transactionsQuery.data && <ErrorState message={apiError(transactionsQuery.error, 'Unable to refresh transactions.')} onRetry={() => transactionsQuery.refetch()} />}
 
-    {loading ? <LoadingState label="Loading transactions" compact /> : error ? <ErrorState message={error} onRetry={() => setRefresh((value) => value + 1)} /> : !items.length ? (
+    <FetchingSurface active={transactionsQuery.isFetching && !transactionsQuery.isPending} label="Refreshing transactions">
+    {transactionsQuery.isPending ? <TransactionsSkeleton /> : transactionsQuery.isError && !transactionsQuery.data ? <ErrorState message={apiError(transactionsQuery.error, 'Unable to load transactions.')} onRetry={() => transactionsQuery.refetch()} /> : !items.length ? (
       <EmptyState title="No transactions yet" actionLabel="Add a transaction" onAction={openNew}>Record an expense or income to start building your overview.</EmptyState>
     ) : <>
       <div className="list-caption"><span>Transactions</span><span>{items.length} total</span></div>
@@ -102,5 +90,6 @@ export default function Transactions({ onChanged, formOpen, onFormOpenChange }) 
       </li>)}</ul>
       {items.length > limit && <button type="button" className="quiet-button mt-5 w-full" onClick={() => setLimit((value) => value + 8)}>Show more transactions</button>}
     </>}
+    </FetchingSurface>
   </section>
 }
