@@ -49,6 +49,39 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+const RENDER_KEEP_ALIVE_INTERVAL_MS = 4 * 60 * 1000;
+
+const startRenderKeepAlive = (server) => {
+  if (process.env.RENDER !== 'true' || !process.env.RENDER_EXTERNAL_URL) return;
+
+  const healthUrl = new URL('/health', process.env.RENDER_EXTERNAL_URL).toString();
+  let requestInProgress = false;
+
+  const interval = setInterval(async () => {
+    if (requestInProgress) return;
+    requestInProgress = true;
+
+    try {
+      const response = await fetch(healthUrl, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      await response.text();
+
+      if (!response.ok) {
+        console.warn(`Render keep-alive returned HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.warn(`Render keep-alive failed: ${error.message}`);
+    } finally {
+      requestInProgress = false;
+    }
+  }, RENDER_KEEP_ALIVE_INTERVAL_MS);
+
+  // Do not let the timer delay a normal process shutdown.
+  interval.unref();
+  server.once('close', () => clearInterval(interval));
+  console.log('Render keep-alive enabled (every 4 minutes)');
+};
 
 const startServer = async () => {
   try {
@@ -66,9 +99,12 @@ const startServer = async () => {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
 
-    return app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`ClearCash API listening on port ${PORT}`);
+      startRenderKeepAlive(server);
     });
+
+    return server;
   } catch (error) {
     console.error(`Unable to start server: ${error.message}`);
     process.exit(1);
@@ -77,5 +113,5 @@ const startServer = async () => {
 
 if (require.main === module) startServer();
 
-module.exports = { app, startServer };
+module.exports = { app, startServer, startRenderKeepAlive };
 

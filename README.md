@@ -88,7 +88,7 @@ The fixture-based browser audit is in tests/browser-polish.js. Start the product
 
 ## Deployment preparation (nothing is deployed)
 
-- **Render:** server/ root, npm ci build command, npm start start command; set MONGO_URI, JWT_SECRET, CORS_ORIGIN and optionally JWT_EXPIRES_IN. Render supplies PORT. Use /health as the health-check path.
+- **Render:** server/ root, npm ci build command, npm start start command; set MONGO_URI, JWT_SECRET, CORS_ORIGIN and optionally JWT_EXPIRES_IN. Render supplies PORT. Use /health as the health-check path. On Render, the server automatically requests its public /health endpoint every four minutes using Render's built-in RENDER_EXTERNAL_URL value; this keep-alive is disabled outside Render.
 - **Atlas:** create the database/user and configure network access yourself; place the URI only in the backend environment.
 - **Vercel:** client/ root, npm run build, dist output; set VITE_API_BASE_URL to the Render HTTPS origin. vercel.json provides SPA rewrites so direct visits to /home or /insights work. For another host, configure its equivalent fallback to index.html.
 - Set backend CORS_ORIGIN to the exact deployed frontend HTTPS origin. Add preview origins explicitly if needed. Verify signup, login and CRUD on the deployed app after configuring both services.
