@@ -65,7 +65,7 @@ export default function NotificationBell() {
   const urgent = [...subscriptions].sort((a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate))[0]
   const showDebit = alertsOn && !loading && !error && urgent
   return <>
-    <button type="button" aria-label="Upcoming debit notifications" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setOpen(true); if (enabled && dueSoonQuery.isStale) dueSoonQuery.refetch() }} className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-border bg-surface-elevated text-ink-secondary shadow-card hover:border-accent">
+    <button type="button" aria-label="Upcoming debit notifications" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setOpen(true); if (enabled && dueSoonQuery.isStale) dueSoonQuery.refetch() }} className="notification-trigger">
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" /></svg>
       {alertsOn && !error && subscriptions.length > 0 && <span data-testid="debit-badge" className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-dangerfill px-1 text-[0.65rem] font-bold text-white">{subscriptions.length > 9 ? '9+' : subscriptions.length}</span>}
     </button>

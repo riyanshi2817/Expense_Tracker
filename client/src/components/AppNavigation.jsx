@@ -41,7 +41,7 @@ function AppNavigation() {
       </nav>
       <div className="sidebar-footer">
         <Link to="/profile" className="sidebar-account"><span className="sidebar-avatar" aria-hidden="true">{user?.name?.trim()?.[0]?.toUpperCase() || 'C'}</span><span className="sidebar-account-copy"><strong>{user?.name || 'Your account'}</strong><small>View profile</small></span><svg className="sidebar-account-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></Link>
-        <div className="sidebar-tools"><ThemeToggle showLabel /><NotificationBell /></div>
+        <div className="sidebar-tools" role="group" aria-label="Quick controls"><ThemeToggle /><NotificationBell /></div>
       </div>
     </aside>
 

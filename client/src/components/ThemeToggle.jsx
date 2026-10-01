@@ -1,6 +1,6 @@
 import { useTheme } from '../context/useTheme'
 
-export default function ThemeToggle({ showLabel = false }) {
+export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
   const dark = theme === 'dark'
 
@@ -8,7 +8,7 @@ export default function ThemeToggle({ showLabel = false }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`theme-toggle ${showLabel ? 'theme-toggle--labelled' : ''}`}
+      className="theme-toggle"
       aria-label={`Switch to ${dark ? 'light' : 'dark'} mode`}
       title={`Switch to ${dark ? 'light' : 'dark'} mode`}
     >
@@ -17,7 +17,6 @@ export default function ThemeToggle({ showLabel = false }) {
       ) : (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" /></svg>
       )}
-      {showLabel && <span>{dark ? 'Light mode' : 'Dark mode'}</span>}
     </button>
   )
 }
