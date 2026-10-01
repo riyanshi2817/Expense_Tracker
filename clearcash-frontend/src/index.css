@@ -1,0 +1,55 @@
+@config "../tailwind.config.js";
+@import "tailwindcss";
+
+:root {
+  color: #f7f8fc;
+  background: #0b1020;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --chart-accent: #7c6cff;
+  --chart-success: #42d392;
+  --chart-danger: #ff667a;
+  --chart-grid: #25314a;
+  --chart-text: #a6b0c3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Shared feedback, form controls and mobile containment. */
+@layer components {
+  .form-input { @apply mt-2 block w-full min-w-0 rounded-xl border border-border bg-surface-muted px-3 py-3 text-ink outline-none focus:border-accent focus:ring-2 focus:ring-accent/20; }
+  .action-button { @apply items-center justify-center rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-soft disabled:cursor-wait disabled:opacity-60; }
+}
+main, section, form, fieldset, .grid > *, .flex > * { min-width: 0; }
+p, h1, h2, h3 { overflow-wrap: anywhere; }
+input, select, textarea { max-width: 100%; font-size: 16px; }
+button, a { touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline: 2px solid #a89cff; outline-offset: 3px; }
+[id] { scroll-margin-top: 24px; }
+@media (max-width: 1023px) {
+  main { padding-bottom: calc(9rem + env(safe-area-inset-bottom)); }
+  nav { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
